@@ -1,39 +1,21 @@
 import os
-import subprocess
+import time
 
-DATA_DIR = "/data"
-os.makedirs(DATA_DIR, exist_ok=True)
+TEST_FILE = "/data/becker-persistence-test.txt"
 
-cmd = [
-    "python",
-    "-u",
-    "/app/centronic-py/centronic-stick.py",
-    "-t",
-    "--device",
-    "/dev/ttyACM0",
-    "--send",
-    "TRAIN",
-    "--channel",
-    "1:1",
-]
+print("=== Becker persistent volume test ===", flush=True)
 
-print("=== Centronic-py PERSISTENT TEST MODE ===", flush=True)
-print("Working directory:", DATA_DIR, flush=True)
-print("A -t miatt NEM kuldunk adatot a Becker sticknek.", flush=True)
+if os.path.exists(TEST_FILE):
+    print("SUCCESS: a korabbi tesztfajl megmaradt.", flush=True)
+    with open(TEST_FILE, "r") as f:
+        print("Tartalom:", f.read(), flush=True)
+else:
+    print("Elso futas: tesztfajl letrehozasa...", flush=True)
+    with open(TEST_FILE, "w") as f:
+        f.write("becker-data OK")
+    print("SUCCESS: tesztfajl letrehozva.", flush=True)
 
-result = subprocess.run(
-    cmd,
-    cwd=DATA_DIR,
-    capture_output=True,
-    text=True
-)
+print("Path:", TEST_FILE, flush=True)
 
-print("--- STDOUT ---", flush=True)
-print(result.stdout, flush=True)
-print("--- STDERR ---", flush=True)
-print(result.stderr, flush=True)
-
-db_path = os.path.join(DATA_DIR, "centronic-stick.db")
-print("Database exists:", os.path.exists(db_path), flush=True)
-print("Database path:", db_path, flush=True)
-print("Exit code:", result.returncode, flush=True)
+while True:
+    time.sleep(60)
