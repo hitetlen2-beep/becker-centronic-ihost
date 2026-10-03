@@ -1,16 +1,14 @@
 import sys
 import time
 
-# A friss Becker projekt pybecker mappaja
 sys.path.insert(0, "/app/becker-ha")
 
 from pybecker.becker_helper import BeckerCommunicator
 
 DEVICE = "/dev/ttyACM0"
 
-print("=== PYBECKER RX ONLY TEST ===", flush=True)
+print("=== PYBECKER RX DECODE TEST ===", flush=True)
 print("Device:", DEVICE, flush=True)
-print("Friss BeckerCommunicator hasznalata.", flush=True)
 print("CSAK VETEL - nincs send(), TRAIN, FEL, LE vagy STOP.", flush=True)
 
 
@@ -23,10 +21,10 @@ def received(match):
         print("RAW:", repr(packet), flush=True)
         print("HEX:", packet.hex(" "), flush=True)
 
-        try:
-            print("TEXT:", packet.decode("ascii", errors="replace"), flush=True)
-        except Exception as error:
-            print("Decode error:", repr(error), flush=True)
+        print("unit_id:", match.group("unit_id"), flush=True)
+        print("channel:", match.group("channel"), flush=True)
+        print("command:", match.group("command"), flush=True)
+        print("argument:", match.group("argument"), flush=True)
 
     except Exception as error:
         print("Callback error:", repr(error), flush=True)
