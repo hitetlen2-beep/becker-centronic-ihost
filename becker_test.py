@@ -4,10 +4,10 @@ import serial
 DEVICE = "/dev/ttyACM0"
 BAUD = 115200
 
-print("=== Becker Centronic USB diagnostic ===", flush=True)
+print("=== Becker Centronic command diagnostic ===", flush=True)
 print("Device:", DEVICE, flush=True)
 print("Baud:", BAUD, flush=True)
-print("NINCS TRAIN / FEL / LE / STOP parancs.", flush=True)
+print("NINCS TRAIN / FEL / LE / STOP.", flush=True)
 
 ser = serial.Serial(
     port=DEVICE,
@@ -15,42 +15,51 @@ ser = serial.Serial(
     bytesize=serial.EIGHTBITS,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
-    timeout=2
+    timeout=1
 )
 
 time.sleep(1)
-ser.reset_input_buffer()
 
-def query(command, name):
-    print("", flush=True)
-    print("QUERY:", name, flush=True)
-
+def test(command, description):
     ser.reset_input_buffer()
+
+    print("", flush=True)
+    print("TEST:", description, flush=True)
+    print("TX HEX:", command.hex(" "), flush=True)
+    print("TX RAW:", repr(command), flush=True)
+
     ser.write(command)
     ser.flush()
 
-    time.sleep(1)
+    time.sleep(0.5)
 
     data = ser.read(512)
 
     print("RX HEX:", data.hex(" "), flush=True)
     print("RX RAW:", repr(data), flush=True)
+    print(
+        "RX TEXT:",
+        data.decode("ascii", errors="replace"),
+        flush=True
+    )
 
-    try:
-        print("RX TEXT:", data.decode("ascii", errors="replace"), flush=True)
-    except Exception as error:
-        print("Decode error:", error, flush=True)
+tests = [
+    (b"i", "INFO: i"),
+    (b"i\r", "INFO: i + CR"),
+    (b"i\r\n", "INFO: i + CRLF"),
+    (b"r", "RSSI: r"),
+    (b"r\r", "RSSI: r + CR"),
+    (b"r\r\n", "RSSI: r + CRLF"),
+]
 
-# Stick information
-query(b"i", "INFO (i)")
-
-# Radio/RSSI information
-query(b"r", "RSSI (r)")
-
-print("", flush=True)
-print("Diagnostic finished.", flush=True)
+for command, description in tests:
+    test(command, description)
+    time.sleep(0.5)
 
 ser.close()
+
+print("", flush=True)
+print("=== Diagnostic finished ===", flush=True)
 
 while True:
     time.sleep(60)
