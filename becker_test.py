@@ -9,7 +9,6 @@ cmd = [
     "python",
     "-u",
     "/app/centronic-py/centronic-stick.py",
-    "-t",
     "--device",
     "/dev/ttyACM0",
     "--send",
@@ -18,9 +17,9 @@ cmd = [
     "1:1",
 ]
 
-print("=== Becker Centronic SAFE TEST ===", flush=True)
+print("=== Becker Centronic LILLA TRAIN ===", flush=True)
 print("Persistent directory:", DATA_DIR, flush=True)
-print("TEST MODE (-t): nincs radioadas.", flush=True)
+print("LIVE MODE: TRAIN parancs kuldese a Lilla redonyhoz.", flush=True)
 
 result = subprocess.run(
     cmd,
