@@ -1,46 +1,56 @@
 import sys
+import asyncio
 import time
 
 sys.path.insert(0, "/app/becker-ha")
 
-from pybecker.database import Database
+from pybecker.becker import Becker
 
+DEVICE = "/dev/ttyACM0"
 DB_FILE = "/data/centronic-stick.db"
+CHANNEL = "1:1"
 
-print("=== PYBECKER UNIT INIT TEST ===", flush=True)
+print("=== LILLA REDONY - PYBECKER TRAIN ===", flush=True)
+print("Device:", DEVICE, flush=True)
 print("Database:", DB_FILE, flush=True)
-print("NINCS USB / RADIOADAS / TRAIN / FEL / LE / STOP.", flush=True)
+print("Channel:", CHANNEL, flush=True)
+print("FIGYELEM: EZ A PROGRAM TRAIN RADIOPARANCSOT KULD!", flush=True)
 
-try:
-    db = Database(filename=DB_FILE)
 
-    print("Database megnyitva.", flush=True)
+async def main():
+    becker = None
 
-    units_before = db.get_all_units()
-    print("Configured units BEFORE:", repr(units_before), flush=True)
+    try:
+        becker = Becker(
+            device_name=DEVICE,
+            init_dummy=False,
+            db_filename=DB_FILE
+        )
 
-    if not units_before:
-        print("Nincs configured unit -> init_dummy() indul.", flush=True)
-        db.init_dummy()
-    else:
-        print("Mar van configured unit -> NEM inicializaljuk ujra.", flush=True)
+        print("Pybecker elindult.", flush=True)
+        print("TRAIN indul...", flush=True)
 
-    units_after = db.get_all_units()
+        await becker.send(CHANNEL, "TRAIN")
 
-    print("Configured units AFTER:", repr(units_after), flush=True)
+        print("TRAIN szekvencia elkuldve.", flush=True)
 
-    if units_after:
-        print("SUCCESS: sajat pybecker unit rendelkezesre all.", flush=True)
-        print("Unit:", repr(units_after[0]), flush=True)
-    else:
-        print("ERROR: tovabbra sincs configured unit.", flush=True)
+        # Hagyunk idot a communicatornak a teljes sorozat kikuldesere.
+        await asyncio.sleep(3)
 
-    db.conn.close()
+    except Exception as error:
+        print("ERROR:", repr(error), flush=True)
 
-except Exception as error:
-    print("ERROR:", repr(error), flush=True)
+    finally:
+        if becker is not None:
+            try:
+                becker.close()
+            except Exception as error:
+                print("Close error:", repr(error), flush=True)
 
-print("=== UNIT INIT TEST FINISHED ===", flush=True)
+        print("TRAIN program befejezve.", flush=True)
+
+
+asyncio.run(main())
 
 while True:
     time.sleep(60)
