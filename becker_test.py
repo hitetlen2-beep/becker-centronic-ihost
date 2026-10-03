@@ -9,7 +9,7 @@ cmd = [
     "python",
     "-u",
     "/app/centronic-py/centronic-stick.py",
-    "--listen",
+    "-l",
     "--device",
     "/dev/ttyACM0",
 ]
