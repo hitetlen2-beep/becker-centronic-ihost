@@ -1,50 +1,36 @@
 import sys
+import os
 import time
 
 sys.path.insert(0, "/app/becker-ha")
 
-from pybecker.becker_helper import BeckerCommunicator
+from pybecker.database import Database
 
-DEVICE = "/dev/ttyACM0"
+DATA_DIR = "/data"
+DB_FILE = "/data/centronic-stick.db"
 
-print("=== PYBECKER RX DECODE TEST ===", flush=True)
-print("Device:", DEVICE, flush=True)
-print("CSAK VETEL - nincs send(), TRAIN, FEL, LE vagy STOP.", flush=True)
+print("=== PYBECKER PERSISTENT DATABASE TEST ===", flush=True)
+print("NINCS RADIOADAS / TRAIN / FEL / LE / STOP.", flush=True)
 
+os.makedirs(DATA_DIR, exist_ok=True)
 
-def received(match):
-    try:
-        packet = match.group(0)
-
-        print("", flush=True)
-        print("=== RECEIVED PACKET ===", flush=True)
-        print("RAW:", repr(packet), flush=True)
-        print("HEX:", packet.hex(" "), flush=True)
-
-        print("unit_id:", match.group("unit_id"), flush=True)
-        print("channel:", match.group("channel"), flush=True)
-        print("command:", match.group("command"), flush=True)
-        print("argument:", match.group("argument"), flush=True)
-
-    except Exception as error:
-        print("Callback error:", repr(error), flush=True)
-
+print("Database path:", DB_FILE, flush=True)
+print("Database existed before:", os.path.exists(DB_FILE), flush=True)
 
 try:
-    communicator = BeckerCommunicator(
-        device=DEVICE,
-        callback=received
-    )
+    db = Database(filename=DB_FILE)
 
-    communicator.start()
+    print("SUCCESS: pybecker database megnyitva.", flush=True)
+    print("Database exists now:", os.path.exists(DB_FILE), flush=True)
 
-    print("BeckerCommunicator elindult.", flush=True)
-    print("Varakozas Centronic radio telegramokra...", flush=True)
+    if os.path.exists(DB_FILE):
+        print("Database size:", os.path.getsize(DB_FILE), "bytes", flush=True)
 
-    while communicator.is_alive():
-        time.sleep(1)
+    # Lezarjuk az adatbazis-kapcsolatot.
+    if hasattr(db, "conn"):
+        db.conn.close()
 
-    print("ERROR: BeckerCommunicator leallt.", flush=True)
+    print("SUCCESS: database teszt befejezve.", flush=True)
 
 except Exception as error:
     print("ERROR:", repr(error), flush=True)
