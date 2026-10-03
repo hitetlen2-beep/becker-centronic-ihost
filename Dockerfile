@@ -8,7 +8,15 @@ RUN pip install --no-cache-dir pyserial
 
 WORKDIR /app
 
-RUN git clone --depth 1 https://github.com/ole1986/centronic-py.git /app/centronic-py
+# Regi centronic-py - megtartjuk osszehasonlitashoz
+RUN git clone --depth 1 \
+    https://github.com/ole1986/centronic-py.git \
+    /app/centronic-py
+
+# Frissebb Becker / pybecker implementacio
+RUN git clone --depth 1 \
+    https://github.com/RainerStaude/hass-becker-component-plus-pybecker.git \
+    /app/becker-ha
 
 COPY becker_test.py /app/becker_test.py
 
