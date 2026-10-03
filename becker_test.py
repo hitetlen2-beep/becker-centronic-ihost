@@ -10,11 +10,11 @@ DEVICE = "/dev/ttyACM0"
 DB_FILE = "/data/centronic-stick.db"
 CHANNEL = "1:1"
 
-print("=== LILLA REDONY - PYBECKER TRAIN ===", flush=True)
+print("=== LILLA REDONY - STOP TEST ===", flush=True)
 print("Device:", DEVICE, flush=True)
 print("Database:", DB_FILE, flush=True)
 print("Channel:", CHANNEL, flush=True)
-print("FIGYELEM: EZ A PROGRAM TRAIN RADIOPARANCSOT KULD!", flush=True)
+print("NORMAL HALT/STOP parancs - NINCS TRAIN.", flush=True)
 
 
 async def main():
@@ -28,14 +28,14 @@ async def main():
         )
 
         print("Pybecker elindult.", flush=True)
-        print("TRAIN indul...", flush=True)
+        print("STOP/HALT kuldese...", flush=True)
 
-        await becker.send(CHANNEL, "TRAIN")
+        await becker.send(CHANNEL, "HALT")
 
-        print("TRAIN szekvencia elkuldve.", flush=True)
+        print("STOP/HALT elkuldve.", flush=True)
 
-        # Hagyunk idot a communicatornak a teljes sorozat kikuldesere.
-        await asyncio.sleep(3)
+        # Hagyunk idot a communicatornak a kikuldesre.
+        await asyncio.sleep(2)
 
     except Exception as error:
         print("ERROR:", repr(error), flush=True)
@@ -47,7 +47,7 @@ async def main():
             except Exception as error:
                 print("Close error:", repr(error), flush=True)
 
-        print("TRAIN program befejezve.", flush=True)
+        print("STOP teszt befejezve.", flush=True)
 
 
 asyncio.run(main())
