@@ -1,21 +1,41 @@
 import os
+import subprocess
 import time
 
-TEST_FILE = "/data/becker-persistence-test.txt"
+DATA_DIR = "/data"
+os.makedirs(DATA_DIR, exist_ok=True)
 
-print("=== Becker persistent volume test ===", flush=True)
+cmd = [
+    "python",
+    "-u",
+    "/app/centronic-py/centronic-stick.py",
+    "-t",
+    "--device",
+    "/dev/ttyACM0",
+    "--send",
+    "TRAIN",
+    "--channel",
+    "1:1",
+]
 
-if os.path.exists(TEST_FILE):
-    print("SUCCESS: a korabbi tesztfajl megmaradt.", flush=True)
-    with open(TEST_FILE, "r") as f:
-        print("Tartalom:", f.read(), flush=True)
-else:
-    print("Elso futas: tesztfajl letrehozasa...", flush=True)
-    with open(TEST_FILE, "w") as f:
-        f.write("becker-data OK")
-    print("SUCCESS: tesztfajl letrehozva.", flush=True)
+print("=== Becker Centronic SAFE TEST ===", flush=True)
+print("Persistent directory:", DATA_DIR, flush=True)
+print("TEST MODE (-t): nincs radioadas.", flush=True)
 
-print("Path:", TEST_FILE, flush=True)
+result = subprocess.run(
+    cmd,
+    cwd=DATA_DIR,
+    capture_output=True,
+    text=True
+)
+
+print("--- STDOUT ---", flush=True)
+print(result.stdout, flush=True)
+print("--- STDERR ---", flush=True)
+print(result.stderr, flush=True)
+print("Exit code:", result.returncode, flush=True)
+
+print("A teszt befejezodott. Varakozas...", flush=True)
 
 while True:
     time.sleep(60)
