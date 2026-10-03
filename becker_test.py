@@ -17,12 +17,8 @@ PORT = 8080
 class BeckerBridge:
     def __init__(self):
         self.loop = asyncio.new_event_loop()
-
-        self.becker = Becker(
-            device_name=DEVICE,
-            init_dummy=False,
-            db_filename=DB_FILE
-        )
+        self.becker = None
+        self.ready = threading.Event()
 
         self.thread = threading.Thread(
             target=self._run_loop,
@@ -30,17 +26,45 @@ class BeckerBridge:
         )
         self.thread.start()
 
+        # Megvarjuk, amig a Becker es az adatbazis
+        # a hatterszalban letrejon.
+        if not self.ready.wait(timeout=10):
+            raise RuntimeError("BeckerBridge initialization timeout")
+
     def _run_loop(self):
         asyncio.set_event_loop(self.loop)
-        self.loop.run_forever()
+
+        try:
+            # FONTOS:
+            # A Becker + SQLite ugyanebben a threadben jon letre,
+            # ahol kesobb a send() parancsok is futnak.
+            self.becker = Becker(
+                device_name=DEVICE,
+                init_dummy=False,
+                db_filename=DB_FILE
+            )
+
+            print("Becker initialized in worker thread.", flush=True)
+            self.ready.set()
+
+            self.loop.run_forever()
+
+        except Exception as error:
+            print("BRIDGE INIT ERROR:", repr(error), flush=True)
+            self.ready.set()
+
+    async def _send(self, command):
+        if self.becker is None:
+            raise RuntimeError("Becker not initialized")
+
+        await self.becker.send(LILLA_CHANNEL, command)
 
     def send(self, command):
         future = asyncio.run_coroutine_threadsafe(
-            self.becker.send(LILLA_CHANNEL, command),
+            self._send(command),
             self.loop
         )
 
-        # Megvarjuk, hogy a pybecker atvegye/kikuldje a parancsot.
         future.result(timeout=10)
 
 
