@@ -1,65 +1,55 @@
+import sys
 import time
-import serial
+
+# A friss Becker projekt pybecker mappaja
+sys.path.insert(0, "/app/becker-ha")
+
+from pybecker.becker_helper import BeckerCommunicator
 
 DEVICE = "/dev/ttyACM0"
-BAUD = 115200
 
-print("=== Becker Centronic command diagnostic ===", flush=True)
+print("=== PYBECKER RX ONLY TEST ===", flush=True)
 print("Device:", DEVICE, flush=True)
-print("Baud:", BAUD, flush=True)
-print("NINCS TRAIN / FEL / LE / STOP.", flush=True)
+print("Friss BeckerCommunicator hasznalata.", flush=True)
+print("CSAK VETEL - nincs send(), TRAIN, FEL, LE vagy STOP.", flush=True)
 
-ser = serial.Serial(
-    port=DEVICE,
-    baudrate=BAUD,
-    bytesize=serial.EIGHTBITS,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    timeout=1
-)
 
-time.sleep(1)
+def received(match):
+    try:
+        packet = match.group(0)
 
-def test(command, description):
-    ser.reset_input_buffer()
+        print("", flush=True)
+        print("=== RECEIVED PACKET ===", flush=True)
+        print("RAW:", repr(packet), flush=True)
+        print("HEX:", packet.hex(" "), flush=True)
 
-    print("", flush=True)
-    print("TEST:", description, flush=True)
-    print("TX HEX:", command.hex(" "), flush=True)
-    print("TX RAW:", repr(command), flush=True)
+        try:
+            print("TEXT:", packet.decode("ascii", errors="replace"), flush=True)
+        except Exception as error:
+            print("Decode error:", repr(error), flush=True)
 
-    ser.write(command)
-    ser.flush()
+    except Exception as error:
+        print("Callback error:", repr(error), flush=True)
 
-    time.sleep(0.5)
 
-    data = ser.read(512)
-
-    print("RX HEX:", data.hex(" "), flush=True)
-    print("RX RAW:", repr(data), flush=True)
-    print(
-        "RX TEXT:",
-        data.decode("ascii", errors="replace"),
-        flush=True
+try:
+    communicator = BeckerCommunicator(
+        device=DEVICE,
+        callback=received
     )
 
-tests = [
-    (b"i", "INFO: i"),
-    (b"i\r", "INFO: i + CR"),
-    (b"i\r\n", "INFO: i + CRLF"),
-    (b"r", "RSSI: r"),
-    (b"r\r", "RSSI: r + CR"),
-    (b"r\r\n", "RSSI: r + CRLF"),
-]
+    communicator.start()
 
-for command, description in tests:
-    test(command, description)
-    time.sleep(0.5)
+    print("BeckerCommunicator elindult.", flush=True)
+    print("Varakozas Centronic radio telegramokra...", flush=True)
 
-ser.close()
+    while communicator.is_alive():
+        time.sleep(1)
 
-print("", flush=True)
-print("=== Diagnostic finished ===", flush=True)
+    print("ERROR: BeckerCommunicator leallt.", flush=True)
+
+except Exception as error:
+    print("ERROR:", repr(error), flush=True)
 
 while True:
     time.sleep(60)
